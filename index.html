@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AromaTown — Кав’ярня онлайн</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body class="bg bg--overlay">
+  <div id="app" class="container">
+    <header class="topbar">
+      <div class="brand brand--compact">
+        <span class="brand__logo">☕</span>
+        <span class="brand__name">AromaTown</span>
+      </div>
+      <nav class="nav">
+        <button class="tab" :class="{active: page==='home'}"  @click="page='home'">🏠 Головна</button>
+        <button class="tab" :class="{active: page==='menu'}"  @click="page='menu'">📜 Меню</button>
+        <button class="tab" :class="{active: page==='order'}" @click="page='order'">🛒 Замовлення</button>
+        <button class="tab" :class="{active: page==='about'}" @click="page='about'">ℹ Про нас</button>
+        <button class="tab" :class="{active: page==='contacts'}" @click="page='contacts'">📬 Контакти</button>
+      </nav>
+      <div class="userbox">
+        <span v-if="user">👋 Привіт, <b>{{ user }}</b></span>
+        <a class="btn btn--ghost" href="index.html" @click="logoutUser">Вийти</a>
+      </div>
+    </header>
+
+    <transition name="fade" mode="out-in">
+      <main :key="page">
+        <!-- HOME -->
+        <section v-if="page==='home'">
+          <h2>Ласкаво просимо до AromaTown</h2>
+          <p>
+            <b>AromaTown</b> — місце, де кожна чашка кави має свій характер. Серед аромату свіжозмеленої арабіки та
+            тепла наших барист ви знайдете ідеальний напій для душі.
+          </p>
+          <p>
+            Наша історія почалася з маленького куточка у центрі міста, куди приходили за щирістю та спілкуванням.
+            Сьогодні ми онлайн, аби ви могли замовити улюблене <i>тут і зараз</i>.
+          </p>
+
+          <div class="hero-cards">
+            <article class="card">
+              <h3>Свіжа обсмажка</h3>
+              <p>Використовуємо зерно 100% арабіка, обсмажене дрібними партіями для стабільного смаку.</p>
+            </article>
+            <article class="card">
+              <h3>Авторські рецепти</h3>
+              <p>Сезонні напої, сиропи власного приготування, делікатні поєднання спецій та молока.</p>
+            </article>
+            <article class="card">
+              <h3>Швидка доставка</h3>
+              <p>Готуємо після замовлення та доставляємо теплим. Кур’єром або самовивіз із точки.</p>
+            </article>
+          </div>
+
+          <div class="cta">
+            <button class="btn btn--primary btn--lg" @click="page='order'">Зробити замовлення</button>
+            <button class="btn btn--outline btn--lg" @click="page='menu'">Переглянути меню</button>
+          </div>
+        </section>
+
+        <!-- MENU -->
+        <section v-else-if="page==='menu'">
+          <h2>Меню</h2>
+          <p>Оберіть свій настрій: класика, молочні напої або солодкі сезонні мікси.</p>
+
+          <div class="grid">
+            <article v-for="item in menu" :key="item.id" class="menu-card">
+              <div class="menu-card__img" :style="{ backgroundImage: 'linear-gradient(rgba(0,0,0,.25), rgba(0,0,0,.25)), url(' + item.img + ')' }"></div>
+              <div class="menu-card__body">
+                <h3 class="menu-card__title">{{ item.name }}</h3>
+                <p class="menu-card__desc">{{ item.desc }}</p>
+                <div class="menu-card__meta">
+                  <span class="price">{{ item.price }} грн</span>
+                  <button class="btn btn--small" @click="quickPick(item)">Обрати</button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- ORDER -->
+        <section v-else-if="page==='order'">
+          <h2>Замовлення</h2>
+          <div class="order">
+            <div class="order__col">
+              <label class="label">Напій</label>
+              <select class="input" v-model="selectedCoffeeId">
+                <option disabled value="">— оберіть —</option>
+                <option v-for="item in menu" :value="item.id">{{ item.name }} — {{ item.price }} грн</option>
+              </select>
+
+              <label class="label">Розмір</label>
+              <div class="segmented">
+                <label><input type="radio" value="s" v-model="size"/> S</label>
+                <label><input type="radio" value="m" v-model="size"/> M</label>
+                <label><input type="radio" value="l" v-model="size"/> L</label>
+              </div>
+
+              <label class="label">Додатки</label>
+              <div class="chips">
+                <label class="chip"><input type="checkbox" value="vanilla" v-model="addons"/> Ваніль (+8)</label>
+                <label class="chip"><input type="checkbox" value="caramel" v-model="addons"/> Карамель (+8)</label>
+                <label class="chip"><input type="checkbox" value="oatmilk" v-model="addons"/> Вівсяне молоко (+10)</label>
+              </div>
+
+              <label class="label">Кількість</label>
+              <input class="input" type="number" min="1" v-model.number="count"/>
+            </div>
+
+            <div class="order__col order__summary">
+              <h3>Підсумок</h3>
+              <ul class="summary-list">
+                <li><span>Напій:</span> <b>{{ currentItem ? currentItem.name : '—' }}</b></li>
+                <li><span>Розмір:</span> <b>{{ size.toUpperCase() }}</b></li>
+                <li><span>Додатки:</span> <b>{{ addonsLabel }}</b></li>
+                <li><span>Кількість:</span> <b>{{ count }}</b></li>
+                <li class="summary-total"><span>Сума:</span> <b>{{ totalPrice }} грн</b></li>
+              </ul>
+
+              <button class="btn btn--primary btn--lg" :disabled="!currentItem || count<1" @click="confirmOrder">
+                Підтвердити замовлення
+              </button>
+              <p v-if="message" class="ok">{{ message }}</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ABOUT -->
+        <section v-else-if="page==='about'">
+          <h2>Про AromaTown</h2>
+          <p>
+            <b>AromaTown</b> — це маленька команда фанатів кави. Ми обираємо зерно з кращих регіонів,
+            обсмажуємо мікропартіями та тестуємо профілі, щоб ви отримували стабільний результат.
+          </p>
+          <p>
+            У меню — класика (Еспресо, Американо), молочні улюбленці (Лате, Капучино), а також
+            сезонні авторські рецепти. Ми з повагою ставимося до локальних виробників молока,
+            сиропів і випічки.
+          </p>
+
+          <div class="pillars">
+            <div class="pillar">
+              <h3>Якість</h3>
+              <p>Контролюємо шлях зерна: від плантації до чашки. Лише перевірені постачальники.</p>
+            </div>
+            <div class="pillar">
+              <h3>Атмосфера</h3>
+              <p>Кава — це емоція. Ми дбаємо, щоб кожне замовлення дарувало момент радості.</p>
+            </div>
+            <div class="pillar">
+              <h3>Чесність</h3>
+              <p>Прозорі ціни, зрозумілі інгредієнти, відкритість до відгуків.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- CONTACTS -->
+        <section v-else>
+          <h2>Контакти</h2>
+          <div class="contacts">
+            <div>
+              <p>📍 <b>Адреса:</b> м. Київ, вул. Кавова, 7</p>
+              <p>📞 <b>Телефон:</b> +380 67 123 45 67</p>
+              <p>📧 <b>Email:</b> hello@aromatown.ua</p>
+              <p>🕒 <b>Графік:</b> Пн–Нд, 08:00–20:00</p>
+            </div>
+            <div class="note">
+              <p>Пишіть у зручний месенджер — підкажемо, що обрати, і оформимо замовлення за хвилини.</p>
+              <button class="btn btn--outline" @click="page='order'">Перейти до замовлення</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </transition>
+
+    <footer class="footer">
+      <small>© 2025 AromaTown. Made with love & coffee.</small>
+    </footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.15/vue.global.min.js"></script>
+  <script src="user.js"></script>
+</body>
+</html>
